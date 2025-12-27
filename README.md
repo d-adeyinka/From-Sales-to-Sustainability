@@ -1,80 +1,102 @@
-# From-Sales-to-Sustainability: An E-commerce Profitability Analysis
-This project uses Microsoft SQL Server to analyze a synthetic e-commerce dataset, exploring sales trends, customer behavior, product performance, returns, and profit margins. All SQL queries used for insights are included for reproducibility.
+/********************************************************************
+-- E-COMMERCE SALES DATA ANALYSIS
+-- Author: Adeyinka Adeyelu
+-- Description: SQL queries to analyze sales, revenue, profit, 
+-- customer demographics, and product performance from the sales_data table.
+-- This file is ready for GitHub and includes syntax highlighting comments.
+********************************************************************/
 
-ecommerce-sql-analysis/
-└── sql/
-    └── ecommerce_analysis.sql
-
-/* =====================================================
-   E-COMMERCE SALES ANALYSIS
-   From Sales to Sustainability: An E-commerce Profitability Analysis
-   Database: Microsoft SQL Server
-===================================================== */
-
--- ===============================
--- 1. DATA OVERVIEW
--- ===============================
+-- =========================
+-- 1. VIEW THE DATA
+-- =========================
 SELECT *
 FROM sales_data;
 
--- ===============================
--- 2. SALES PERFORMANCE ANALYSIS
--- ===============================
+-- =========================
+-- 2. TOTAL SALES & QUANTITY
+-- =========================
 
--- Total products sold
+-- Total number of products sold
 SELECT SUM(quantity) AS total_products_sold
 FROM sales_data;
 
--- Revenue by product category
-SELECT 
-    category,
-    ROUND(SUM(total_amount), 0) AS revenue_per_category
+-- Total number of products sold per product category
+SELECT category, SUM(quantity) AS number_of_products_sold
 FROM sales_data
 GROUP BY category
-ORDER BY revenue_per_category DESC;
+ORDER BY number_of_products_sold DESC;
 
--- ===============================
--- 3. PROFITABILITY ANALYSIS
--- ===============================
+-- Total revenue
+SELECT ROUND(SUM(total_amount),0) AS total_revenue
+FROM sales_data;
 
--- Revenue and profit by category
-SELECT 
-    category,
-    ROUND(SUM(total_amount), 0) AS revenue,
-    ROUND(SUM(total_amount * profit_margin), 0) AS profit
+-- Total revenue and number of products sold per category
+SELECT category, 
+       ROUND(SUM(total_amount),0) AS sales_amount_per_category, 
+       SUM(quantity) AS number_of_products_sold
+FROM sales_data
+GROUP BY category
+ORDER BY sales_amount_per_category DESC;
+
+-- Total revenue and profit per category
+SELECT category, 
+       ROUND(SUM(total_amount),0) AS revenue_per_category, 
+       ROUND(SUM(profit_margin),0) AS profit
 FROM sales_data
 GROUP BY category
 ORDER BY profit DESC;
 
--- ===============================
--- 4. CUSTOMER DEMOGRAPHICS
--- ===============================
+-- =========================
+-- 3. TIME-BASED ANALYSIS
+-- =========================
 
--- Sales by age group
-WITH age_groups AS (
-    SELECT 
-        CASE 
-            WHEN customer_age BETWEEN 18 AND 25 THEN '18-25'
-            WHEN customer_age BETWEEN 26 AND 35 THEN '26-35'
-            WHEN customer_age BETWEEN 36 AND 49 THEN '36-49'
-            ELSE '50+'
-        END AS age_group,
-        total_amount
+-- Distinct years in the dataset
+SELECT DISTINCT YEAR(order_date) AS year
+FROM sales_data;
+
+-- Total revenue per year
+SELECT YEAR(order_date) AS year, 
+       ROUND(SUM(total_amount),0) AS sales_per_year
+FROM sales_data
+GROUP BY YEAR(order_date)
+ORDER BY year DESC;
+
+-- Monthly sales per category
+SELECT FORMAT(TRY_CONVERT(date, order_date), 'yyyy-MM') AS sales_month,
+       category,
+       ROUND(SUM(total_amount),0) AS sales
+FROM sales_data
+GROUP BY FORMAT(TRY_CONVERT(date, order_date), 'yyyy-MM'), category
+ORDER BY sales_month, sales DESC;
+
+-- =========================
+-- 4. CUSTOMER ANALYSIS
+-- =========================
+
+-- Preferred payment method by customer
+SELECT payment_method, COUNT(payment_method) AS preferred_payment_method
+FROM sales_data
+GROUP BY payment_method
+ORDER BY preferred_payment_method DESC;
+
+-- Total number of customers per age group
+WITH age_data AS (
+    SELECT CASE 
+               WHEN customer_age BETWEEN 18 AND 25 THEN '18-25'
+               WHEN customer_age BETWEEN 25 AND 35 THEN '25-35'
+               WHEN customer_age BETWEEN 35 AND 49 THEN '35-49'
+               ELSE '49-69'
+           END AS age_group
     FROM sales_data
 )
-SELECT 
-    age_group,
-    ROUND(SUM(total_amount), 0) AS total_sales
-FROM age_groups
+SELECT age_group,
+       COUNT(*) AS count_of_age_group
+FROM age_data
 GROUP BY age_group
-ORDER BY total_sales DESC;
+ORDER BY count_of_age_group DESC;
 
--- ===============================
--- 5. RETURNS & OPERATIONS
--- ===============================
-
--- Return rate
-SELECT 
-    CAST(SUM(CASE WHEN returned = 1 THEN 1 ELSE 0 END) AS FLOAT) 
-    / COUNT(*) * 100 AS return_rate
-FROM sales_data;
+-- Total revenue per age group
+SELECT CASE 
+           WHEN customer_age BETWEEN 18 AND 25 THEN '18-25'
+           WHEN customer_age BETWEEN 25 AND 35 THEN '25-35'
+           WHEN customer_ag_
