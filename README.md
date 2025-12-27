@@ -2,7 +2,7 @@
 -- ==================================================
 -- E-COMMERCE SALES DATA ANALYSIS
 -- Author: Adeyinka Adeyelu
--- Description: SQL queries to analyze sales, revenue, profit,
+-- Description: SQL queries to analyse sales, revenue, profit,
 -- customer demographics, product performance, and trends.
 -- ==================================================
 
@@ -183,5 +183,3 @@ FROM sales_data
 GROUP BY region
 ORDER BY total_sales_by_region DESC;
 ```
-
-This format will:
